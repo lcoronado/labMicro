@@ -1,30 +1,45 @@
 
-// -------------- Librerias utilizadas -------------- //
+
 /* Standard includes. */
 #include <string.h>
 
 /* FreeRTOS includes. */
 #include "FreeRTOS.h"
 #include "task.h"
-#include <NXP/crp.h>
 #include "lpc17xx_gpio.h"
-#include "lpc17xx_timer.h"
+
 
 /* Library includes. */
 #include "LPC17xx.h"
 
+
+
 /* Used in the run time stats calculations. */
 static uint32_t ulClocksPer10thOfAMilliSecond = 0UL;
 
-// -------------- prototipo de funcion -------------- //
-/* The task functions. */
-void contadorBinario();
+#define ZERO 0X3F
+#define UNO 0X06
+#define DOS 0x5B
+#define TRES 0x4F
+#define CUATRO 0X66
+#define CINCO 0X6D
+#define SEIS 0X7D
+#define SIETE 0X47
+#define OCHO 0X7F
+#define NUEVE 0X67
+#define ERROR 0x79
 
-// -------------- funcion principal -------------- //
+uint32_t numeros[11] = {0x3F,0x06,0x5B,0x4F,0x66,0x6D,0x7D,0x07,0x7F,0x6F,0x79};
+
+void configGPIO();
+void display();
+void show(int var);
+
 int main( void )
 {
-	// Se crea la tarea para ejecutar el contador binario
-	xTaskCreate( contadorBinario, "Task", 240, NULL, 1, NULL );
+	configGPIO();
+	xTaskCreate( display, "display", 240, NULL, 1, NULL );
+
 
 	/* Start the FreeRTOS scheduler. */
 	vTaskStartScheduler();
@@ -35,28 +50,109 @@ int main( void )
 	site for more information. */
 	for( ;; );
 }
-/*-----------------------------------------------------------*/
 
-// -------------- Definir funciones -------------- //
-void contadorBinario(){
-
-	// Definir variable de conteo
-	uint32_t var = 0;
-
-	// Declarar salidas
+void configGPIO(){
+	// Declarar salidas puerto 0
 	GPIO_SetDir(0,0x000000FF,1);
+	GPIO_ClearValue(0,0x000000FF);
 
-	// loop infinito
+	// Declarar entradas puerto 2
+	GPIO_SetDir(2,0x00000001,0);
+	GPIO_ClearValue(2,0x00000001);
+	GPIO_SetValue(0,ZERO);
+}
+
+void display(){
+
+	uint32_t sw1 = 0x00;
+	int varConteo = 0;
+
 	while(1){
-
-		GPIO_SetValue(0,var); 	// Asignar valores dependiendo de la variable
-		//Timer0_Wait(100); funcion aux de conteo (no compila)
-		var++; 	// Incrementa el valor de la variable
-
-		vTaskDelay(100/portTICK_RATE_MS); 	// Retardo de 100 ms
-		GPIO_ClearValue(0,0x000000FF); 		// Limpia los valores a la salida
+		sw1 = GPIO_ReadValue(2);
+		if (sw1 == 0x03FF9){
+			varConteo = varConteo + 1;
+		}
+		if (sw1 == 0x03FFA){
+			varConteo = varConteo - 1;
+		}
+		show(varConteo);
+		vTaskDelay(100 / portTICK_RATE_MS);
 	}
 }
+
+void show(int var){
+	switch(var){
+
+		case 0:
+			GPIO_ClearValue(0,0x000000FF);
+			GPIO_SetValue(0,ZERO);
+			vTaskDelay(100 / portTICK_RATE_MS);
+			break;
+
+		case 1:
+			GPIO_ClearValue(0,0x000000FF);
+			GPIO_SetValue(0,UNO);
+			vTaskDelay(100 / portTICK_RATE_MS);
+			break;
+
+		case 2:
+			GPIO_ClearValue(0,0x000000FF);
+			GPIO_SetValue(0,DOS);
+			vTaskDelay(100 / portTICK_RATE_MS);
+			break;
+
+		case 3:
+			GPIO_ClearValue(0,0x000000FF);
+			GPIO_SetValue(0,TRES);
+			vTaskDelay(100 / portTICK_RATE_MS);
+			break;
+
+		case 4:
+			GPIO_ClearValue(0,0x000000FF);
+			GPIO_SetValue(0,CUATRO);
+			vTaskDelay(100 / portTICK_RATE_MS);
+			break;
+
+		case 5:
+			GPIO_ClearValue(0,0x000000FF);
+			GPIO_SetValue(0,CINCO);
+			vTaskDelay(100 / portTICK_RATE_MS);
+			break;
+
+		case 6:
+			GPIO_ClearValue(0,0x000000FF);
+			GPIO_SetValue(0,SEIS);
+			vTaskDelay(100 / portTICK_RATE_MS);
+			break;
+
+		case 7:
+			GPIO_ClearValue(0,0x000000FF);
+			GPIO_SetValue(0,SIETE);
+			vTaskDelay(100 / portTICK_RATE_MS);
+			break;
+
+		case 8:
+			GPIO_ClearValue(0,0x000000FF);
+			GPIO_SetValue(0,OCHO);
+			vTaskDelay(100 / portTICK_RATE_MS);
+			break;
+
+		case 9:
+			GPIO_ClearValue(0,0x000000FF);
+			GPIO_SetValue(0,NUEVE);
+			vTaskDelay(100 / portTICK_RATE_MS);
+			break;
+
+		default:
+			GPIO_ClearValue(0,0x000000FF);
+			GPIO_SetValue(0,ERROR);
+			vTaskDelay(100 / portTICK_RATE_MS);
+			break;
+	}
+}
+
+/*-----------------------------------------------------------*/
+
 
 
 
